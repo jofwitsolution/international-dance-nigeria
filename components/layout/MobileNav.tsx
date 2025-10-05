@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Sheet,
@@ -11,6 +10,7 @@ import {
 import { Button } from "../ui/button";
 import { Menu } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 const navLinks = [
   {
@@ -41,7 +41,16 @@ export const MobileNav = () => {
       </SheetTrigger>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>IDN</SheetTitle>
+          <SheetTitle>
+            <Link href="/" className="text-2xl font-bold text-primary-100">
+              <Image
+                src={"site-logo-1.svg"}
+                width={124}
+                height={60}
+                alt="Logo"
+              />
+            </Link>
+          </SheetTitle>
         </SheetHeader>
         <div className="flex flex-col gap-4 mt-8">
           {navLinks.map((link) => (

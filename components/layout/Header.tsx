@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { MobileNav } from "./MobileNav";
 import Link from "next/link";
@@ -11,6 +13,8 @@ import {
 } from "../ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
   {
@@ -32,28 +36,46 @@ const navLinks = [
 ];
 
 const Header = () => {
+  const pathname = usePathname();
+
   return (
-    <header className="py-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="text-2xl font-bold text-primary-100">
-            IDN
-          </Link>
-        </div>
+    <header className="sticky top-0 z-50 w-full bg-secondary shadow-sm">
+      <nav className="max-width navbar-height flex items-center justify-between">
+        <Link href={"/"} className="flex items-center gap-2 sm:gap-4">
+          <Image
+            src={"site-logo-1.svg"}
+            width={70}
+            height={40}
+            alt="Logo"
+            className="max-sm:w-[50px]"
+          />
+
+          <div className="flex flex-col items-center italic text-sm sm:text-lg font-bold leading-tight">
+            <span>DANCE WORLD CUP</span>
+            <span>NIGERIA</span>
+          </div>
+        </Link>
         <NavigationMenu className="hidden lg:flex">
           <NavigationMenuList>
-            {navLinks.map((link) => (
-              <NavigationMenuItem key={link.href}>
-                <NavigationMenuLink
-                  href={link.href}
-                  className={cn(
-                    "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
-                  )}
-                >
-                  {link.label}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            ))}
+            {navLinks.map((link) => {
+              const isActive =
+                pathname === link.href ||
+                (link.href !== "/" && pathname.startsWith(link.href));
+
+              return (
+                <NavigationMenuItem key={link.href}>
+                  <NavigationMenuLink
+                    href={link.href}
+                    className={cn(
+                      "inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition-colors hover:bg-background/50",
+                      isActive && "bg-background"
+                    )}
+                  >
+                    {link.label}
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              );
+            })}
           </NavigationMenuList>
         </NavigationMenu>
         <div className="hidden lg:flex items-center gap-4">
@@ -62,7 +84,7 @@ const Header = () => {
         <div className="lg:hidden">
           <MobileNav />
         </div>
-      </div>
+      </nav>
     </header>
   );
 };

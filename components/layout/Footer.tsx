@@ -1,4 +1,3 @@
-
 import React from "react";
 import Link from "next/link";
 import { Button } from "../ui/button";
@@ -7,7 +6,7 @@ import { Input } from "../ui/input";
 const Footer = () => {
   return (
     <footer className="bg-primary-100 text-white py-12">
-      <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="max-width grid grid-cols-1 md:grid-cols-4 gap-8">
         <div>
           <h3 className="text-xl font-bold mb-4">About IDN</h3>
           <p>
@@ -57,4 +56,3 @@ const Footer = () => {
 };
 
 export default Footer;
-

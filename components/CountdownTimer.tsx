@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useEffect, useState, type ReactElement } from "react";
+import React, { useEffect, useState } from "react";
 
 interface CountdownTimerProps {
   targetDate: string;
@@ -34,23 +33,28 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
 
-    return () => clearTimeout(timer);
-  });
+    return () => clearInterval(timer);
+  }, [targetDate]); // Only run once and when targetDate changes
 
   const timerComponents: React.ReactNode[] = [];
 
   Object.keys(timeLeft).forEach((interval) => {
-    if (!timeLeft[interval as keyof TimeLeft]) {
+    if (timeLeft[interval as keyof TimeLeft] === undefined) {
       return;
     }
 
     timerComponents.push(
-      <div key={interval} className="text-center">
-        <div className="text-4xl font-bold">{timeLeft[interval as keyof TimeLeft]}</div>
+      <div
+        key={interval}
+        className="text-center bg-background p-4 rounded-lg shadow-md"
+      >
+        <div className="text-4xl font-bold">
+          {timeLeft[interval as keyof TimeLeft]}
+        </div>
         <div className="text-sm">{interval}</div>
       </div>
     );

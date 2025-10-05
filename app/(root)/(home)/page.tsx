@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 
 const HomePage = () => {
   return (
-    <div>
+    <div className="">
       <Hero />
-      <div className="py-12 bg-gray-100">
-        <div className="container mx-auto">
+      <div className="py-12 bg-primary-100">
+        <div className="max-width">
           <h2 className="text-3xl font-bold text-center mb-8">
             Event Countdown
           </h2>
@@ -31,7 +31,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-      <div className="py-12">
+      <div className="max-width py-12">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold text-center mb-8">
             Event Information
@@ -75,7 +75,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-      <div className="py-12 bg-gray-100">
+      <div className="max-width py-12">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">About the Dance World Cup</h2>
           <p className="text-lg mb-8">
