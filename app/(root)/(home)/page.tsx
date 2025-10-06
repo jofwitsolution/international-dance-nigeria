@@ -3,33 +3,107 @@ import React from "react";
 import CountdownTimer from "@/components/CountdownTimer";
 import InfoCard from "@/components/InfoCard";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 const HomePage = () => {
   return (
     <div className="">
       <Hero />
-      <div className="py-12 bg-primary-100">
+      <div className="bg-primary-100 my-8 py-4">
+        <div className="max-width text-center text-background">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in-down">
+            Dance World Cup Nigeria
+          </h1>
+          <p className="text-lg md:text-2xl mb-8 animate-fade-in-up">
+            The official qualifier for the Dance World Cup Finals.
+          </p>
+          <Button size="lg">Learn More</Button>
+        </div>
+      </div>
+      <div className="py-12 bg-primary-100 rounded-lg shadow-2xl">
         <div className="max-width">
-          <h2 className="text-3xl font-bold text-center mb-8">
+          <h2 className="text-3xl font-bold text-center text-background mb-8">
             Event Countdown
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             <div className="text-center">
-              <h3 className="text-xl font-bold mb-4">
+              <h3 className="text-xl text-background font-bold mb-4">
                 Qualifier Registration Starts
               </h3>
               <CountdownTimer targetDate="2025-12-01T00:00:00" />
             </div>
             <div className="text-center">
-              <h3 className="text-xl font-bold mb-4">Qualifier Event</h3>
+              <h3 className="text-xl text-background font-bold mb-4">
+                Qualifier Event
+              </h3>
               <CountdownTimer targetDate="2026-02-14T00:00:00" />
             </div>
             <div className="text-center">
-              <h3 className="text-xl font-bold mb-4">Dance World Cup Finals</h3>
+              <h3 className="text-xl text-background font-bold mb-4">
+                Dance World Cup Finals
+              </h3>
               <CountdownTimer targetDate="2026-07-08T00:00:00" />
             </div>
           </div>
         </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 my-12 max-width">
+        <Image
+          src={"/dancers/dancer-1.jpg"}
+          alt="Dancers"
+          width={600}
+          height={400}
+          className="rounded-lg shadow-lg"
+        />
+        <Image
+          src={"/dancers/dancer-1.jpg"}
+          alt="Dancers"
+          width={600}
+          height={400}
+          className="rounded-lg shadow-lg"
+        />
+        <Image
+          src={"/dancers/dancer-1.jpg"}
+          alt="Dancers"
+          width={600}
+          height={400}
+          className="rounded-lg shadow-lg"
+        />
+        <Image
+          src={"/dancers/dancer-1.jpg"}
+          alt="Dancers"
+          width={600}
+          height={400}
+          className="rounded-lg shadow-lg"
+        />
+        <Image
+          src={"/dancers/dancer-1.jpg"}
+          alt="Dancers"
+          width={600}
+          height={400}
+          className="rounded-lg shadow-lg"
+        />
+        <Image
+          src={"/dancers/dancer-1.jpg"}
+          alt="Dancers"
+          width={600}
+          height={400}
+          className="rounded-lg shadow-lg"
+        />
+        <Image
+          src={"/dancers/dancer-1.jpg"}
+          alt="Dancers"
+          width={600}
+          height={400}
+          className="rounded-lg shadow-lg"
+        />
+        <Image
+          src={"/dancers/dancer-1.jpg"}
+          alt="Dancers"
+          width={600}
+          height={400}
+          className="rounded-lg shadow-lg"
+        />
       </div>
       <div className="max-width py-12">
         <div className="container mx-auto">

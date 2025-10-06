@@ -10,8 +10,8 @@ import { Button } from "./ui/button";
 
 const heroImages = [
   "/hero-images/image-1.png",
-  "/hero-images/image-1.png",
-  "/hero-images/image-1.png",
+  "/hero-images/image-2.png",
+  "/hero-images/image-3.png",
 ];
 
 const Hero = () => {
@@ -21,7 +21,7 @@ const Hero = () => {
         spaceBetween={30}
         centeredSlides={true}
         autoplay={{
-          delay: 2500,
+          delay: 5000,
           disableOnInteraction: false,
         }}
         pagination={{
@@ -37,7 +37,7 @@ const Hero = () => {
               className="h-full bg-cover bg-center"
               style={{ backgroundImage: `url(${image})` }}
             >
-              <div className="absolute inset-0 bg-black opacity-80 flex items-center justify-center">
+              {/* <div className="absolute inset-0 bg-black opacity-80 flex items-center justify-center">
                 <div className="text-center text-white">
                   <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in-down">
                     Dance World Cup Nigeria
@@ -47,7 +47,7 @@ const Hero = () => {
                   </p>
                   <Button size="lg">Learn More</Button>
                 </div>
-              </div>
+              </div> */}
             </div>
           </SwiperSlide>
         ))}

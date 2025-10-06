@@ -50,9 +50,9 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
     timerComponents.push(
       <div
         key={interval}
-        className="text-center bg-background p-4 rounded-lg shadow-md"
+        className="text-center bg-background p-2 md:p-4 rounded-lg shadow-md"
       >
-        <div className="text-4xl font-bold">
+        <div className="text-2xl md:text-4xl font-bold">
           {timeLeft[interval as keyof TimeLeft]}
         </div>
         <div className="text-sm">{interval}</div>
@@ -61,7 +61,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
   });
 
   return (
-    <div className="flex justify-center gap-8">
+    <div className="flex justify-center gap-4 md:gap-8">
       {timerComponents.length ? timerComponents : <span>Time's up!</span>}
     </div>
   );
