@@ -84,7 +84,7 @@ const Header = () => {
         </NavigationMenu>
         <div className="hidden lg:flex items-center gap-4">
           <Link href={"/registeration"} className="cursor-pointer">
-            <Button>Register</Button>
+            <Button className="cursor-pointer">Register</Button>
           </Link>
         </div>
         <div className="lg:hidden">
