@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const ContactUsPage = () => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (e.target instanceof HTMLFormElement) {
@@ -21,6 +21,19 @@ const ContactUsPage = () => {
         toast.error("Please fill in all fields.");
         return;
       } else {
+        const response = await fetch("/api/email/contact", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name, email, subject, message }),
+        });
+
+        if (!response.ok) {
+          toast.error("Failed to send message. Please try again later.");
+          return;
+        }
+
         toast.success("Message sent successfully!", {
           description: "We will get back to you soon.",
         });
@@ -42,7 +55,7 @@ const ContactUsPage = () => {
             >
               Name
             </label>
-            <Input type="text" id="name" placeholder="Your Name" />
+            <Input name="name" type="text" id="name" placeholder="Your Name" />
           </div>
           <div>
             <label
@@ -51,7 +64,12 @@ const ContactUsPage = () => {
             >
               Email
             </label>
-            <Input type="email" id="email" placeholder="Your Email" />
+            <Input
+              name="email"
+              type="email"
+              id="email"
+              placeholder="Your Email"
+            />
           </div>
           <div>
             <label
@@ -60,7 +78,12 @@ const ContactUsPage = () => {
             >
               Subject
             </label>
-            <Input type="text" id="subject" placeholder="Subject" />
+            <Input
+              name="subject"
+              type="text"
+              id="subject"
+              placeholder="Subject"
+            />
           </div>
           <div>
             <label
@@ -70,6 +93,7 @@ const ContactUsPage = () => {
               Message
             </label>
             <Textarea
+              name="message"
               id="message"
               placeholder="Your Message"
               rows={5}

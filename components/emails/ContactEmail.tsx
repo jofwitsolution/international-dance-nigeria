@@ -17,12 +17,7 @@ type ContactEmailProps = {
   message: string;
 };
 
-const ContactEmail: React.FC<Readonly<ContactEmailProps>> = ({
-  name,
-  email,
-  subject,
-  message,
-}) => {
+const ContactEmail = ({ name, email, subject, message }: ContactEmailProps) => {
   return (
     <Html>
       <Head />
