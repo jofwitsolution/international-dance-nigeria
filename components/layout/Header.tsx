@@ -22,13 +22,17 @@ const navLinks = [
     href: "/",
   },
   {
+    label: "About",
+    href: "/about",
+  },
+  {
     label: "Rules and Regulations",
     href: "/rules-and-regulations",
   },
-  {
-    label: "Blog",
-    href: "/blog",
-  },
+  // {
+  //   label: "Blog",
+  //   href: "/blog",
+  // },
   {
     label: "Contact Us",
     href: "/contact-us",
@@ -79,7 +83,9 @@ const Header = () => {
           </NavigationMenuList>
         </NavigationMenu>
         <div className="hidden lg:flex items-center gap-4">
-          <Button>Register</Button>
+          <Link href={"/registeration"} className="cursor-pointer">
+            <Button>Register</Button>
+          </Link>
         </div>
         <div className="lg:hidden">
           <MobileNav />

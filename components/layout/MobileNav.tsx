@@ -1,6 +1,7 @@
 import React from "react";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -18,13 +19,14 @@ const navLinks = [
     href: "/",
   },
   {
+    label: "About",
+    href: "/about",
+  },
+  {
     label: "Rules and Regulations",
     href: "/rules-and-regulations",
   },
-  {
-    label: "Blog",
-    href: "/blog",
-  },
+
   {
     label: "Contact Us",
     href: "/contact-us",
@@ -42,27 +44,30 @@ export const MobileNav = () => {
       <SheetContent>
         <SheetHeader>
           <SheetTitle>
-            <Link href="/" className="text-2xl font-bold text-primary-100">
-              <Image
-                src={"site-logo-1.svg"}
-                width={124}
-                height={60}
-                alt="Logo"
-              />
-            </Link>
+            <SheetClose asChild>
+              <Link href="/" className="text-2xl font-bold text-primary-100">
+                <Image
+                  src={"site-logo-1.svg"}
+                  width={70}
+                  height={40}
+                  alt="Logo"
+                />
+              </Link>
+            </SheetClose>
           </SheetTitle>
+          <SheetDescription className="sr-only" />
         </SheetHeader>
-        <div className="flex flex-col gap-4 mt-8">
+        <div className="flex flex-col gap-4 mt-8 px-4">
           {navLinks.map((link) => (
-            <Link
-              href={link.href}
-              key={link.href}
-              className="text-lg font-medium"
-            >
-              {link.label}
-            </Link>
+            <SheetClose asChild key={link.href}>
+              <Link href={link.href} className="text-lg font-medium">
+                {link.label}
+              </Link>
+            </SheetClose>
           ))}
-          <Button>Register</Button>
+          <Link href={"/registeration"} className="mt-4 w-full cursor-pointer">
+            <Button className="w-full">Register</Button>
+          </Link>
         </div>
       </SheetContent>
     </Sheet>
