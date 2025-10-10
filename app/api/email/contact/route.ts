@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { resend } from "@/lib/resend";
 import ContactEmail from "@/components/emails/ContactEmail";
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
   try {
     const { name, email, subject, message } = (await req.json()) as {
       name: string;
