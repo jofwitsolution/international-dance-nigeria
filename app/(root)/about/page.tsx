@@ -18,7 +18,7 @@ const AboutPage = () => {
       </section>
 
       {/* Founders section */}
-      <section className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 items-stretch">
+      <section className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
         <div className="flex flex-col justify-between rounded-lg bg-background p-6 shadow-sm">
           <h2 className="text-2xl font-bold">Our Founders</h2>
           <p className="mt-3 text-muted-foreground">
@@ -66,7 +66,7 @@ const AboutPage = () => {
           </a>
         </div>
 
-        <div className="grid grid-cols-1 ga-6">
+        <div className="grid grid-cols-1 gap-6">
           <img
             src="/founders/margaret.jpg"
             alt="Margaret Macaulay — Founder"

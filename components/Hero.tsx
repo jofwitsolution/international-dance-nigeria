@@ -7,6 +7,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 // import "swiper/css/navigation";
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { Button } from "./ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const heroImages = [
   "/hero-images/image-1.png",
@@ -15,8 +16,11 @@ const heroImages = [
 ];
 
 const Hero = () => {
+  const isMobile = useIsMobile();
+  console.log({ isMobile });
+
   return (
-    <div className="relative h-screen">
+    <div className={`relative ${isMobile ? "h-[300px]" : "h-screen"}`}>
       <Swiper
         spaceBetween={30}
         centeredSlides={true}

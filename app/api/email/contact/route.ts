@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       to: "info@internationaldance.ng",
       subject: `New Contact Form Submission: ${subject}`,
       react: ContactEmail({ name, email, subject, message }),
+      replyTo: email,
     });
 
     if (error) {

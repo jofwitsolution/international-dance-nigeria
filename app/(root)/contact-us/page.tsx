@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const ContactUsPage = () => {
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -21,6 +23,7 @@ const ContactUsPage = () => {
         toast.error("Please fill in all fields.");
         return;
       } else {
+        setIsSubmitting(true);
         const response = await fetch("/api/email/contact", {
           method: "POST",
           headers: {
@@ -31,9 +34,11 @@ const ContactUsPage = () => {
 
         if (!response.ok) {
           toast.error("Failed to send message. Please try again later.");
+          setIsSubmitting(false);
           return;
         }
 
+        setIsSubmitting(false);
         toast.success("Message sent successfully!", {
           description: "We will get back to you soon.",
         });
@@ -100,8 +105,12 @@ const ContactUsPage = () => {
               className="h-30"
             />
           </div>
-          <Button type="submit" className="w-full cursor-pointer">
-            Send Message
+          <Button
+            disabled={isSubmitting}
+            type="submit"
+            className="w-full cursor-pointer"
+          >
+            {isSubmitting ? "Sending..." : "Send Message"}
           </Button>
         </form>
       </div>

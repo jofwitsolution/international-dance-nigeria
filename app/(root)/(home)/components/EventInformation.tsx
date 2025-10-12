@@ -9,7 +9,7 @@ const EventInformation = () => {
           Event Information
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <InfoCard
+          {/* <InfoCard
             title="Categories & Entry Fees"
             content={
               <ul>
@@ -20,7 +20,7 @@ const EventInformation = () => {
                 <li>Spectator Admission: ₦3,568 (€2)</li>
               </ul>
             }
-          />
+          /> */}
           <InfoCard
             title="Dance Genres"
             content={
