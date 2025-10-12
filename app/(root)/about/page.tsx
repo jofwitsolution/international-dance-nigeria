@@ -66,7 +66,7 @@ const AboutPage = () => {
           </a>
         </div>
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="hidden md:grid grid-cols-1 gap-6">
           <img
             src="/founders/margaret.jpg"
             alt="Margaret Macaulay — Founder"
@@ -105,6 +105,19 @@ const AboutPage = () => {
             </div>
           </div>
         </div> */}
+      </section>
+
+      <section className="flex md:hidden flex-col gap-8">
+        <img
+          src="/founders/margaret.jpg"
+          alt="Margaret Macaulay — Founder"
+          className="object-cover w-full"
+        />
+        <img
+          src="/founders/colin.jpg"
+          alt="Colin Sinclair — Founder"
+          className="object-cover w-full"
+        />
       </section>
 
       {/* Mission / Vision / What we do */}
