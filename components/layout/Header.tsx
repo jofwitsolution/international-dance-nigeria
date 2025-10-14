@@ -29,10 +29,10 @@ const navLinks = [
     label: "Rules and Regulations",
     href: "/rules-and-regulations",
   },
-  // {
-  //   label: "Blog",
-  //   href: "/blog",
-  // },
+  {
+    label: "Event",
+    href: "/event",
+  },
   {
     label: "Contact Us",
     href: "/contact-us",

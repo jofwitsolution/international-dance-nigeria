@@ -26,7 +26,10 @@ const navLinks = [
     label: "Rules and Regulations",
     href: "/rules-and-regulations",
   },
-
+  {
+    label: "Event",
+    href: "/event",
+  },
   {
     label: "Contact Us",
     href: "/contact-us",
