@@ -35,9 +35,14 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             <div className="text-center">
               <h3 className="text-xl text-background font-bold mb-4">
-                Qualifier Registration Starts
+                Qualifier Registration Opened
               </h3>
-              <CountdownTimer targetDate="2025-12-01T00:00:00" />
+              <Link
+                href={"/registeration"}
+                className="block mt-12 w-full cursor-pointer"
+              >
+                <Button className="cursor-pointer">Register Now</Button>
+              </Link>
             </div>
             <div className="text-center">
               <h3 className="text-xl text-background font-bold mb-4">
