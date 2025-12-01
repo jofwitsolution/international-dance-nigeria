@@ -53,7 +53,7 @@ const ContactEmail = ({ name, email, subject, message }: ContactEmailProps) => {
           </Section>
 
           <Section style={{ marginTop: 12, padding: 0 }}>
-            <div style={{ display: "flex", gap: 12, flexDirection: "column" }}>
+            <div>
               <div>
                 <Text
                   style={{ fontSize: 13, color: "#94a3b8", marginBottom: 4 }}

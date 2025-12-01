@@ -39,7 +39,9 @@ type EventItem = {
   slug: string;
   excerpt?: string;
   coverImage: string;
+  coverImagePublicId?: string;
   images?: string[];
+  imagesPublicIds?: string[];
   videos?: string[];
   contentHtml?: string;
   publishedAt?: string;
@@ -53,6 +55,100 @@ export default function ManageEvent() {
     "create"
   );
   const [submitting, setSubmitting] = useState(false);
+
+  // Create-state file inputs
+  const [createCoverFile, setCreateCoverFile] = useState<File | null>(null);
+  const [createImageFiles, setCreateImageFiles] = useState<File[]>([]);
+
+  // Update-state: existing images and selection
+  const [existingImagesState, setExistingImagesState] = useState<
+    { url: string; publicId?: string; keep: boolean }[]
+  >([]);
+  const [existingCoverPreview, setExistingCoverPreview] = useState<
+    string | null
+  >(null);
+  const [updateCoverFile, setUpdateCoverFile] = useState<File | null>(null);
+  const [updateNewImageFiles, setUpdateNewImageFiles] = useState<File[]>([]);
+  // upload progress
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+
+  // compress image using canvas (client-side)
+  async function compressImage(file: File, maxWidth = 1600, quality = 0.8) {
+    if (!file.type.startsWith("image/")) return file;
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const image = new Image();
+      image.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve(image);
+      };
+      image.onerror = (e) => reject(e);
+      image.src = url;
+    });
+
+    const ratio = img.width / img.height;
+    const targetWidth = Math.min(maxWidth, img.width);
+    const targetHeight = Math.round(targetWidth / ratio);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+    const blob: Blob | null = await new Promise((resolve) =>
+      canvas.toBlob(resolve, file.type || "image/jpeg", quality)
+    );
+    if (!blob) return file;
+    return new File([blob], file.name, { type: blob.type });
+  }
+
+  // upload via XHR so we can track progress
+  function uploadToCloudinary(
+    file: File,
+    sig: any,
+    folder: string,
+    onProgress?: (loaded: number, total: number) => void
+  ) {
+    return new Promise<any>(async (resolve, reject) => {
+      try {
+        const compressed = await compressImage(file);
+        const fd = new FormData();
+        fd.append("file", compressed);
+        fd.append("folder", folder);
+        fd.append("api_key", sig.apiKey);
+        fd.append("timestamp", String(sig.timestamp));
+        fd.append("signature", sig.signature);
+
+        const url = `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`;
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url);
+        xhr.upload.onprogress = function (e) {
+          if (e.lengthComputable && onProgress) onProgress(e.loaded, e.total);
+        };
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const json = JSON.parse(xhr.responseText);
+              resolve(json);
+            } catch (err) {
+              reject(err);
+            }
+          } else {
+            reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+          }
+        };
+        xhr.onerror = function (e) {
+          reject(new Error("Network error"));
+        };
+        xhr.send(fd);
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
 
   // Create form
   const createForm = useForm<FormValues>({
@@ -95,16 +191,110 @@ export default function ManageEvent() {
             .map((s) => s.trim())
             .filter(Boolean)
         : [];
+      // If files need uploading, do direct signed uploads to Cloudinary
+      if (createCoverFile || createImageFiles.length) {
+        // request signature
+        const sigRes = await fetch(
+          `/api/cloudinary/signature?key=${encodeURIComponent(manageKey)}`,
+          { method: "POST", body: JSON.stringify({ folder: "events" }) }
+        );
+        if (!sigRes.ok)
+          throw new Error("Failed to obtain Cloudinary signature");
+        const sig = await sigRes.json();
+
+        const uploadedImages: string[] = [];
+        const uploadedPublicIds: string[] = [];
+        let coverUrl = values.coverImage;
+        let coverPubId: string | undefined = undefined;
+
+        // helper to upload a file (delegates to XHR uploader which supports progress)
+        async function uploadFile(
+          file: File,
+          folder = sig.folder,
+          onProgress?: (loaded: number, total: number) => void
+        ) {
+          return await uploadToCloudinary(file, sig, folder, onProgress);
+        }
+
+        setIsUploading(true);
+        setUploadProgress(0);
+        try {
+          const totalFiles =
+            (createCoverFile ? 1 : 0) + createImageFiles.length;
+          let uploaded = 0;
+
+          if (createCoverFile) {
+            const r = await uploadFile(
+              createCoverFile,
+              sig.folder + "/cover",
+              (l: number, t: number) => {
+                // approximate overall progress
+                const frac = (uploaded + l / t) / totalFiles;
+                setUploadProgress(Math.round(frac * 100));
+              }
+            );
+            coverUrl = r.secure_url || r.url;
+            coverPubId = r.public_id;
+            uploaded += 1;
+          }
+
+          for (const f of createImageFiles) {
+            const r = await uploadFile(
+              f,
+              sig.folder + "/images",
+              (l: number, t: number) => {
+                const frac = (uploaded + l / t) / totalFiles;
+                setUploadProgress(Math.round(frac * 100));
+              }
+            );
+            uploadedImages.push(r.secure_url || r.url);
+            uploadedPublicIds.push(r.public_id);
+            uploaded += 1;
+            setUploadProgress(Math.round((uploaded / totalFiles) * 100));
+          }
+        } finally {
+          setIsUploading(false);
+          setUploadProgress(0);
+        }
+
+        const payload = {
+          title: values.title,
+          excerpt: values.excerpt || "",
+          contentHtml: values.contentHtml,
+          publishedAt: values.publishedAt,
+          videos,
+          coverImage: coverUrl,
+          coverImagePublicId: coverPubId,
+          images: uploadedImages,
+          imagesPublicIds: uploadedPublicIds,
+        } as any;
+
+        const res2 = await fetch(
+          `/api/events?key=${encodeURIComponent(manageKey)}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+        if (!res2.ok) {
+          const { message } = await res2
+            .json()
+            .catch(() => ({ message: "Failed" }));
+          throw new Error(message || "Failed to create post");
+        }
+        const data = await res2.json();
+        toast.success("Event post created");
+        router.push(`/event/${data.slug}`);
+        return;
+      }
+
       const res = await fetch(
         `/api/events?key=${encodeURIComponent(manageKey)}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...values,
-            images,
-            videos,
-          }),
+          body: JSON.stringify({ ...values, images, videos }),
         }
       );
       if (!res.ok) {
@@ -180,6 +370,18 @@ export default function ManageEvent() {
         ? new Date(data.publishedAt).toISOString()
         : undefined,
     });
+    // populate existing images state for update UI
+    const imgs: { url: string; publicId?: string; keep: boolean }[] = [];
+    if (Array.isArray(data.images)) {
+      const publicIds = Array.isArray(data.imagesPublicIds)
+        ? data.imagesPublicIds
+        : [];
+      for (let i = 0; i < data.images.length; i++) {
+        imgs.push({ url: data.images[i], publicId: publicIds[i], keep: true });
+      }
+    }
+    setExistingImagesState(imgs);
+    setExistingCoverPreview(data.coverImage || null);
   }
 
   async function onUpdate(values: FormValues) {
@@ -199,16 +401,127 @@ export default function ManageEvent() {
             .filter(Boolean)
         : [];
 
+      // Build list of existing images public ids to keep
+      const imagesToKeepPubIds = existingImagesState
+        .filter((i) => i.keep)
+        .map((i) => i.publicId)
+        .filter(Boolean) as string[];
+
+      // If uploads or deletions are needed, perform client-side uploads then send JSON
+      if (
+        updateCoverFile ||
+        updateNewImageFiles.length ||
+        imagesToKeepPubIds.length !== (existingImagesState.length || 0)
+      ) {
+        // get signature
+        const sigRes = await fetch(
+          `/api/cloudinary/signature?key=${encodeURIComponent(manageKey)}`,
+          { method: "POST", body: JSON.stringify({ folder: "events" }) }
+        );
+        if (!sigRes.ok)
+          throw new Error("Failed to obtain Cloudinary signature");
+        const sig = await sigRes.json();
+
+        const uploadedImages: string[] = [];
+        const uploadedPublicIds: string[] = [];
+        let coverUrl = values.coverImage;
+        let coverPubId: string | undefined = undefined;
+
+        // Use the same XHR uploader so we can track progress in the UI
+        async function uploadFile(
+          file: File,
+          folder = sig.folder,
+          onProgress?: (loaded: number, total: number) => void
+        ) {
+          return await uploadToCloudinary(file, sig, folder, onProgress);
+        }
+
+        setIsUploading(true);
+        setUploadProgress(0);
+        try {
+          const totalFiles =
+            (updateCoverFile ? 1 : 0) + updateNewImageFiles.length;
+          let uploaded = 0;
+          if (updateCoverFile) {
+            const r = await uploadFile(
+              updateCoverFile,
+              sig.folder + "/cover",
+              (l: number, t: number) => {
+                const frac = (uploaded + l / t) / totalFiles;
+                setUploadProgress(Math.round(frac * 100));
+              }
+            );
+            coverUrl = r.secure_url || r.url;
+            coverPubId = r.public_id;
+            uploaded += 1;
+          }
+
+          for (const f of updateNewImageFiles) {
+            const r = await uploadFile(
+              f,
+              sig.folder + "/images",
+              (l: number, t: number) => {
+                const frac = (uploaded + l / t) / totalFiles;
+                setUploadProgress(Math.round(frac * 100));
+              }
+            );
+            uploadedImages.push(r.secure_url || r.url);
+            uploadedPublicIds.push(r.public_id);
+            uploaded += 1;
+            setUploadProgress(Math.round((uploaded / totalFiles) * 100));
+          }
+        } finally {
+          setIsUploading(false);
+          setUploadProgress(0);
+        }
+
+        // Combine kept existing URLs with newly uploaded ones. Existing URLs can be taken from existingImagesState
+        const keptUrls = existingImagesState
+          .filter((i) => i.keep)
+          .map((i) => i.url);
+        const keptPubIds = existingImagesState
+          .filter((i) => i.keep)
+          .map((i) => i.publicId)
+          .filter(Boolean) as string[];
+
+        const payload = {
+          title: values.title,
+          excerpt: values.excerpt || "",
+          contentHtml: values.contentHtml,
+          publishedAt: values.publishedAt,
+          videos,
+          coverImage: coverUrl,
+          coverImagePublicId: coverPubId,
+          images: [...keptUrls, ...uploadedImages],
+          imagesPublicIds: [...keptPubIds, ...uploadedPublicIds],
+        } as any;
+
+        const res2 = await fetch(
+          `/api/events/id/${selected._id}?key=${encodeURIComponent(manageKey)}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+        if (!res2.ok) {
+          const { message } = await res2
+            .json()
+            .catch(() => ({ message: "Failed" }));
+          throw new Error(message || "Failed to update post");
+        }
+        const data = await res2.json();
+        toast.success("Event post updated");
+        router.push(`/event/${data.slug}`);
+        return;
+      }
+
       const res = await fetch(
         `/api/events/id/${selected._id}?key=${encodeURIComponent(manageKey)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...values,
-            images,
-            videos,
-          }),
+          body: JSON.stringify({ ...values, images, videos }),
         }
       );
       if (!res.ok) {
@@ -343,6 +656,20 @@ export default function ManageEvent() {
                     <FormDescription>
                       Displayed on the event list.
                     </FormDescription>
+                    <div className="mt-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0] || null;
+                          setCreateCoverFile(f);
+                          if (f) {
+                            const url = URL.createObjectURL(f);
+                            createForm.setValue("coverImage", url);
+                          }
+                        }}
+                      />
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -365,6 +692,25 @@ export default function ManageEvent() {
                       <FormDescription>
                         Displayed inside the post.
                       </FormDescription>
+                      <FormDescription>
+                        Or upload image files below (multiple allowed). Files
+                        will be uploaded to Cloudinary.
+                      </FormDescription>
+                      <div className="mt-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            setCreateImageFiles(files);
+                            const urls = files.map((f) =>
+                              URL.createObjectURL(f)
+                            );
+                            createForm.setValue("images", urls.join(", "));
+                          }}
+                        />
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -412,13 +758,28 @@ export default function ManageEvent() {
               />
 
               <div className="flex justify-end gap-3">
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="cursor-pointer"
-                >
-                  {submitting ? "Creating..." : "Create Post"}
-                </Button>
+                <div className="flex items-center gap-3">
+                  {isUploading && (
+                    <div className="w-48">
+                      <div className="h-2 bg-background rounded-full overflow-hidden">
+                        <div
+                          className="h-2 bg-primary"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Uploading {uploadProgress}%
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    type="submit"
+                    disabled={submitting || isUploading}
+                    className="cursor-pointer"
+                  >
+                    {submitting ? "Creating..." : "Create Post"}
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>
@@ -512,6 +873,34 @@ export default function ManageEvent() {
                         <FormControl>
                           <Input placeholder="https://..." {...field} />
                         </FormControl>
+                        <FormDescription>
+                          Or upload a new cover file to replace the existing
+                          one.
+                        </FormDescription>
+                        <div className="mt-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0] || null;
+                              setUpdateCoverFile(f);
+                              if (f)
+                                updateForm.setValue(
+                                  "coverImage",
+                                  URL.createObjectURL(f)
+                                );
+                            }}
+                          />
+                        </div>
+                        {existingCoverPreview && !updateCoverFile && (
+                          <div className="mt-2">
+                            <img
+                              src={existingCoverPreview}
+                              alt="cover"
+                              className="max-h-40 rounded-md"
+                            />
+                          </div>
+                        )}
                         <FormMessage />
                       </FormItem>
                     )}
@@ -532,6 +921,64 @@ export default function ManageEvent() {
                             />
                           </FormControl>
                           <FormMessage />
+                          <div className="mt-4">
+                            <div className="text-sm font-medium mb-2">
+                              Existing images
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {existingImagesState.map((img, idx) => (
+                                <label key={idx} className="block text-center">
+                                  <img
+                                    src={img.url}
+                                    className="h-20 w-28 object-cover rounded-md"
+                                  />
+                                  <div>
+                                    <input
+                                      type="checkbox"
+                                      checked={img.keep}
+                                      onChange={(e) => {
+                                        setExistingImagesState((prev) => {
+                                          const next = [...prev];
+                                          next[idx] = {
+                                            ...next[idx],
+                                            keep: e.target.checked,
+                                          };
+                                          return next;
+                                        });
+                                      }}
+                                    />{" "}
+                                    Keep
+                                  </div>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="mt-3">
+                            <div className="text-sm font-medium mb-1">
+                              Upload new images
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={(e) => {
+                                const files = Array.from(e.target.files || []);
+                                setUpdateNewImageFiles(files);
+                                // append previews to textarea
+                                const prev =
+                                  updateForm.getValues("images") || "";
+                                const urls = files.map((f) =>
+                                  URL.createObjectURL(f)
+                                );
+                                updateForm.setValue(
+                                  "images",
+                                  prev
+                                    ? prev + ", " + urls.join(", ")
+                                    : urls.join(", ")
+                                );
+                              }}
+                            />
+                          </div>
                         </FormItem>
                       )}
                     />
@@ -576,13 +1023,28 @@ export default function ManageEvent() {
                   />
 
                   <div className="flex justify-end gap-3">
-                    <Button
-                      type="submit"
-                      disabled={submitting}
-                      className="cursor-pointer"
-                    >
-                      {submitting ? "Saving..." : "Save Changes"}
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      {isUploading && (
+                        <div className="w-48">
+                          <div className="h-2 bg-background rounded-full overflow-hidden">
+                            <div
+                              className="h-2 bg-primary"
+                              style={{ width: `${uploadProgress}%` }}
+                            />
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Uploading {uploadProgress}%
+                          </div>
+                        </div>
+                      )}
+                      <Button
+                        type="submit"
+                        disabled={submitting || isUploading}
+                        className="cursor-pointer"
+                      >
+                        {submitting ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </div>
                   </div>
                 </form>
               </Form>

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { dbConnect } from "@/lib/db/mongoose";
 import EventModel, { generateUniqueSlug } from "@/models/event";
+import { uploadImageFromBuffer } from "@/lib/cloudinary";
 
 export async function GET(req: NextRequest) {
   await dbConnect();
@@ -53,17 +54,67 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const body = await req.json();
+  let title: string | undefined;
+  let excerpt = "";
+  let contentHtml: string | undefined;
+  let coverImage: string | undefined;
+  let coverImagePublicId: string | undefined;
+  let images: string[] = [];
+  let imagesPublicIds: string[] = [];
+  let videos: string[] = [];
+  let publishedAt: any = undefined;
 
-  const {
-    title,
-    excerpt = "",
-    contentHtml,
-    coverImage,
-    images = [],
-    videos = [],
-    publishedAt,
-  } = body || {};
+  // Accept multipart/form-data with files OR JSON
+  const contentType = req.headers.get("content-type") || "";
+  if (contentType.includes("multipart/form-data")) {
+    const form = await req.formData();
+    title = form.get("title")?.toString();
+    excerpt = form.get("excerpt")?.toString() || "";
+    contentHtml = form.get("contentHtml")?.toString() || "";
+    publishedAt = form.get("publishedAt")?.toString();
+
+    // coverImage file
+    const coverFile = form.get("coverImage") as File | null;
+    if (coverFile && typeof coverFile.arrayBuffer === "function") {
+      const buf = Buffer.from(await coverFile.arrayBuffer());
+      const res = await uploadImageFromBuffer(buf, "events/cover");
+      coverImage = res.secure_url || res.url;
+      coverImagePublicId = res.public_id;
+    } else {
+      coverImage = form.get("coverImageUrl")?.toString() || undefined;
+    }
+
+    // images[] files (multiple)
+    const imageFiles = form.getAll("images") as File[];
+    if (imageFiles && imageFiles.length) {
+      for (const f of imageFiles) {
+        if (f && typeof f.arrayBuffer === "function") {
+          const buf = Buffer.from(await f.arrayBuffer());
+          const res = await uploadImageFromBuffer(buf, "events/images");
+          images.push(res.secure_url || res.url);
+          imagesPublicIds.push(res.public_id);
+        }
+      }
+    } else {
+      const imgs = form.get("imagesUrls")?.toString();
+      if (imgs)
+        images = imgs
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+    }
+  } else {
+    const body = await req.json();
+    title = body.title;
+    excerpt = body.excerpt || "";
+    contentHtml = body.contentHtml;
+    coverImage = body.coverImage;
+    images = body.images || [];
+    videos = body.videos || [];
+    publishedAt = body.publishedAt;
+    coverImagePublicId = body.coverImagePublicId;
+    imagesPublicIds = body.imagesPublicIds || [];
+  }
 
   if (!title || !contentHtml || !coverImage) {
     return new Response(
@@ -80,7 +131,9 @@ export async function POST(req: NextRequest) {
     excerpt,
     contentHtml,
     coverImage,
+    coverImagePublicId,
     images,
+    imagesPublicIds,
     videos,
     publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
   });

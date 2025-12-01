@@ -39,7 +39,9 @@ const EventSchema = new Schema(
     excerpt: { type: String, default: "" },
     contentHtml: { type: String, required: true }, // store sanitized HTML from rich text editor
     coverImage: { type: String, required: true }, // URL
+    coverImagePublicId: { type: String, default: "" }, // cloudinary public id
     images: { type: [String], default: [] }, // additional image URLs
+    imagesPublicIds: { type: [String], default: [] }, // cloudinary public ids for images
     videos: { type: [String], default: [] }, // video URLs
     publishedAt: { type: Date, default: Date.now },
   },

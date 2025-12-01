@@ -23,14 +23,18 @@ export async function POST(req: NextRequest) {
     const { data, error } = await resend.emails.send({
       from: "International Dance Nigeria <contact@internationaldance.ng>",
       to: "info@internationaldance.ng",
+      // to: "alagbarason@gmail.com",
       subject: `New Contact Form Submission: ${subject}`,
       react: ContactEmail({ name, email, subject, message }),
       replyTo: email,
     });
 
     if (error) {
+      console.log("Resend error:", error);
       return NextResponse.json({ error }, { status: 500 });
     }
+
+    console.log("Resend response data:", data);
 
     return NextResponse.json({ data }, { status: 200 });
   } catch (error) {
