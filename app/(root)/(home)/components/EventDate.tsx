@@ -29,7 +29,9 @@ const EventDate: React.FC = () => {
 
               <div>
                 <p className="text-sm text-primary">Location</p>
-                <p className="text-lg font-semibold">Abeokuta, Ogun State</p>
+                <p className="text-lg font-semibold">
+                  The QDance Center, Lagos Island
+                </p>
               </div>
             </div>
 
