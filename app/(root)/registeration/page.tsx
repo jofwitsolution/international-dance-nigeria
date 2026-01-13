@@ -156,16 +156,7 @@ export default function RegisterationPage() {
                 dancer is entered into.{" "}
                 {/* <strong>We are not showing any prices here.</strong> */}
               </li>
-              <li>
-                Payment information is not yet available on the DWC portal.
-                Please create your entries now on the DWC portal and check back
-                later for payment account details so you can complete payment.
-              </li>
-              <li>
-                We will display a notification on this page as soon as the
-                account details you should pay into are available. Please
-                refresh this page or watch for the notification banner.
-              </li>
+              <li>Payment information is available on the DWC portal.</li>
             </ol>
 
             <div className="mt-6 border-t pt-4 text-sm text-muted-foreground">
@@ -177,8 +168,9 @@ export default function RegisterationPage() {
                   that site.
                 </li>
                 <li>
-                  Payments will be processed once the payment account is
-                  published — we will notify here when available.
+                  Payment is made directly to Dance World Cup through their
+                  portal. International Dance Nigeria does not handle payments
+                  for DWC entries.
                 </li>
                 <li>
                   If you have questions about the DWC portal itself, please use
@@ -188,7 +180,7 @@ export default function RegisterationPage() {
               </ul>
             </div>
 
-            <div className="mt-6">
+            {/* <div className="mt-6">
               <h4 className="font-semibold">
                 Why two steps (create entries now, pay later)?
               </h4>
@@ -199,7 +191,7 @@ export default function RegisterationPage() {
                 provided account. International Dance Nigeria will forward
                 registration fees to DWC as required.
               </p>
-            </div>
+            </div> */}
           </section>
         </div>
 
